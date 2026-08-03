@@ -1,0 +1,160 @@
+function sendMail(event) {
+
+    event.preventDefault();
+
+    const now = new Date();
+
+    const form = document.getElementById("contact-form");
+    const button = form.querySelector('button[type="submit"]');
+
+    const name = document.getElementById("fname").value.trim();
+    const email = document.getElementById("femail").value.trim();
+    const subject = document.getElementById("fsubject").value.trim();
+    const message = document.getElementById("fmessage").value.trim();
+
+    // ==========================
+    // VALIDATION
+    // ==========================
+
+    // Name
+    if (name.length < 2) {
+        Swal.fire({
+            icon: "warning",
+            title: "Invalid Name",
+            text: "Please enter your full name."
+        });
+        return;
+    }
+
+    // Email validation
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
+
+    if (!emailPattern.test(email)) {
+        Swal.fire({
+            icon: "warning",
+            title: "Invalid Email Address",
+            html: `
+                Please enter a valid email address.<br><br>
+                <b>Examples:</b><br>
+                name@gmail.com<br>
+                name@yahoo.com<br>
+                name@outlook.com
+            `,
+            confirmButtonColor: "#f97316"
+        });
+        return;
+    }
+
+    // Subject
+    if (subject.length < 2) {
+        Swal.fire({
+            icon: "warning",
+            title: "Subject Required",
+            text: "Please enter a subject."
+        });
+        return;
+    }
+
+    // Message
+    if (message.length < 10) {
+        Swal.fire({
+            icon: "warning",
+            title: "Message Too Short",
+            text: "Please enter a more detailed message."
+        });
+        return;
+    }
+
+    // ==========================
+    // Disable Button
+    // ==========================
+
+    button.disabled = true;
+    button.innerHTML = "Sending...";
+
+    const params = {
+        name: name,
+        email: email,
+        subject: subject,
+        message: message,
+
+        date: now.toLocaleDateString("en-PH", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        }),
+
+        time: now.toLocaleTimeString("en-PH", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        })
+    };
+
+    // ==========================
+    // Loading
+    // ==========================
+
+    Swal.fire({
+        title: "Sending...",
+        text: "Please wait while your message is being sent.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // ==========================
+    // SEND EMAIL
+    // ==========================
+
+    emailjs.send(
+        "service_b737efw",
+        "template_mgrqvkt",
+        params
+    )
+
+    .then(function (response) {
+
+        console.log("SUCCESS!", response);
+
+        Swal.close();
+
+        Swal.fire({
+            icon: "success",
+            title: "Message Sent!",
+            text: "Thank you for contacting me. I'll get back to you as soon as possible.",
+            confirmButtonColor: "#f97316",
+            timer: 2500,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+
+        form.reset();
+
+    })
+
+    .catch(function (error) {
+
+        console.error("FAILED!", error);
+
+        Swal.close();
+
+        Swal.fire({
+            icon: "error",
+            title: "Message Not Sent",
+            text: "Something went wrong while sending your message. Please try again.",
+            confirmButtonColor: "#ef4444"
+        });
+
+    })
+
+    .finally(function () {
+
+        button.disabled = false;
+        button.innerHTML = "Send Message →";
+
+    });
+
+}
